@@ -1,0 +1,41 @@
+- name: Initial System Setup
+  hosts: mx1
+  remote_user: root
+  become: true
+  become_method: su
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Apply all available system patches
+      command: syspatch
+      register: syspatch
+      failed_when: syspatch.rc != 0 and syspatch.rc != 2
+      changed_when: syspatch.rc == 0
+
+    - name: Update package list and upgrade all packages
+      command: pkg_add -u
+
+    - name: Install essential packages
+      community.general.openbsd_pkg:
+        name:
+          - nano
+          - curl
+          - git
+        state: present
+
+    - name: Disable SSH password authentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^#?PasswordAuthentication"
+        line: "PasswordAuthentication no"
+        state: present
+
+    - name: Restart SSH service to apply changes
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
+    - name: Add SSH public key to authorized_keys
+      ansible.posix.authorized_key:
+        user: root
+        key: "{{ ssh_public_key }}"

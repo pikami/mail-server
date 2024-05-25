@@ -1,0 +1,3 @@
+# Ansible configuration files
+ansible/inventory.yml
+ansible/vars.yml

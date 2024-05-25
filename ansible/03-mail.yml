@@ -1,0 +1,120 @@
+- name: OpenSMTPD Installation and Configuration
+  hosts: mx1
+  remote_user: root
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Install Packages
+      community.general.openbsd_pkg:
+        name:
+          - opensmtpd-filter-dkimsign
+          - dovecot
+          - dovecot-pigeonhole
+          - opensmtpd-extras
+        state: present
+
+    - name: Create the vmail group
+      group:
+        name: vmail
+        gid: 2000
+
+    - name: Create vmail user
+      user:
+        name: vmail
+        group: vmail
+        shell: /sbin/nologin
+        createhome: yes
+        home: /var/mail/vmail
+        uid: 2000
+
+    - name: Generate dkim keys
+      shell: |
+        KEYLEN=1024
+        DOMAIN={{ mx1_mail_domain }}
+
+        mkdir -p /etc/mail/dkim
+        if [ -f /etc/mail/dkim/$DOMAIN.key ]; then
+          echo "$DOMAIN.key already exists."
+          exit 0
+        fi
+
+        cd /etc/mail/dkim
+        (umask 337; openssl genrsa -out $DOMAIN.key $KEYLEN)
+        openssl rsa -in $DOMAIN.key -pubout -out $DOMAIN.pub
+        group info _dkimsign >/dev/null && chgrp _dkimsign $DOMAIN.key
+        echo "add the $DOMAIN.dns to the zone file"
+        echo "selector1._domainkey.$DOMAIN. 3600 IN TXT \"v=DKIM1; k=rsa; p=$(sed -e '1d' -e '$d' $DOMAIN.pub | tr -d '\n')\"" > ~/$DOMAIN.dns
+
+    - name: Configure OpenSMTPD smtpd.conf
+      template:
+        src: "templates/smtpd.conf"
+        dest: /etc/mail/smtpd.conf
+      notify:
+        - reload smtpd
+
+    - name: Enable and start OpenSMTPD service
+      service:
+        name: smtpd
+        enabled: yes
+        state: started
+
+    - name: Delete default dovecot configs
+      shell: |
+        if [ -f /etc/dovecot/conf.d/10-ssl.conf ]; then
+          cd /etc/dovecot/
+          rm -rf *
+        fi
+
+    - name: Install dovecot.conf
+      template:
+        src: "templates/dovecot.conf"
+        dest: "/etc/dovecot/dovecot.conf"
+      notify:
+        - reload dovecot
+
+    - name: Configure users
+      block:
+        - name: Remove existing
+          shell: |
+            echo "" > /etc/dovecot/users
+            chmod 640 /etc/dovecot/users
+            chown _smtpd:_dovecot /etc/dovecot/users
+
+            echo "" > /etc/mail/accounts
+            chmod 640 /etc/mail/accounts
+            chown _smtpd: /etc/mail/accounts
+
+            echo "" > /etc/mail/virtuals
+            chown _smtpd: /etc/mail/virtuals
+
+        - name: Add user accounts
+          loop: "{{ mail_users }}"
+          no_log: true
+          shell: |
+            DOVECOT_PASS=$(doveadm pw -p {{ item.password }})
+            SMTP_PASS=$(smtpctl encrypt {{ item.password }})
+
+            echo "{{ item.user }}:$DOVECOT_PASS::::" >> /etc/dovecot/users
+            echo "{{ item.user }}:$SMTP_PASS::::" >> /etc/mail/accounts
+
+        - name: Install dovecot.conf
+          template:
+            src: "templates/virtuals.conf"
+            dest: "/etc/mail/virtuals"
+
+    - name: Enable dovecot service
+      service:
+        name: dovecot
+        enabled: true
+        state: started
+
+  handlers:
+    - name: reload smtpd
+      service:
+        name: smtpd
+        state: restarted
+
+    - name: reload dovecot
+      service:
+        name: dovecot
+        state: reloaded

@@ -1,0 +1,50 @@
+- name: SSL Setup
+  hosts: mx1
+  remote_user: root
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Create vhost directories
+      file:
+        path: "/var/www/vhosts/{{ item }}"
+        state: directory
+        owner: www
+      with_items: "{{ mx1_domains }}"
+
+    - name: Install httpd.conf
+      template:
+        src: "templates/httpd.conf"
+        dest: "/etc/httpd.conf"
+
+    - name: Enable and start httpd
+      service:
+        name: httpd
+        enabled: yes
+        state: started
+
+    - name: Install acme-client.conf
+      template:
+        src: "templates/acme-client.conf"
+        dest: "/etc/acme-client.conf"
+
+    - name: Initial acme-client run
+      command: "/usr/sbin/acme-client {{ item }}"
+      args:
+        creates: "/etc/ssl/{{ item }}.fullchain.pem"
+      with_items: "{{ mx1_domains }}"
+      notify:
+        - reload httpd
+
+    - name: Renew certificates via root crontab
+      cron:
+        name: "acme-client renew {{ item }}"
+        minute: "0"
+        job: "sleep $((RANDOM \\% 2048)) && acme-client {{ item }} && rcctl reload httpd"
+        user: root
+      with_items: "{{ mx1_domains }}"
+
+  handlers:
+    - name: reload httpd
+      service:
+        name: httpd
+        state: reloaded
