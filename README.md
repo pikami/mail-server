@@ -13,7 +13,10 @@ Ansible is used for configuration. The playbooks use a `vars.yml` file for setti
 ssh_public_key: "ssh-rsa AAAAB3...ak4EsUU="
 mx1_domains:
   - mx1.pikami.org
-mx1_mail_domain: "mx1.pikami.org"
+mx2_domains:
+  - mx2.pikami.org
+mx1_mail_domain: mx1.pikami.org
+mx2_mail_domain: mx2.pikami.org
 mail_domains:
   - pikami.net
   - pikami.org
@@ -36,6 +39,8 @@ all:
   hosts:
     mx1:
       ansible_host: 51.158.215.227
+    mx2:
+      ansible_host: 89.58.5.252
 ```
 
 ## Environment setup
@@ -71,3 +76,4 @@ Current ansible playbooks:
   - adds ssh public key
 - 02-ssl.yml - generates ssl certificates and adds a renew cron job
 - 03-mail.yml - installs and configures dovecot and opensmtpd
+- 04-secondary-mail.yml - installs and configures opensmtpd as a backup mail receiver

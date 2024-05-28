@@ -1,5 +1,7 @@
 - name: SSL Setup
-  hosts: mx1
+  hosts:
+    - mx1
+    - mx2
   remote_user: root
   vars_files:
     - vars.yml
@@ -9,7 +11,7 @@
         path: "/var/www/vhosts/{{ item }}"
         state: directory
         owner: www
-      with_items: "{{ mx1_domains }}"
+      with_items: "{{ lookup('vars', inventory_hostname + '_domains') }}"
 
     - name: Install httpd.conf
       template:
@@ -31,7 +33,7 @@
       command: "/usr/sbin/acme-client {{ item }}"
       args:
         creates: "/etc/ssl/{{ item }}.fullchain.pem"
-      with_items: "{{ mx1_domains }}"
+      with_items: "{{ lookup('vars', inventory_hostname + '_domains') }}"
       notify:
         - reload httpd
 
@@ -41,7 +43,7 @@
         minute: "0"
         job: "sleep $((RANDOM \\% 2048)) && acme-client {{ item }} && rcctl reload httpd"
         user: root
-      with_items: "{{ mx1_domains }}"
+      with_items: "{{ lookup('vars', inventory_hostname + '_domains') }}"
 
   handlers:
     - name: reload httpd

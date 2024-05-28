@@ -1,5 +1,7 @@
 - name: Initial System Setup
-  hosts: mx1
+  hosts:
+    - mx1
+    - mx2
   remote_user: root
   become: true
   become_method: su
