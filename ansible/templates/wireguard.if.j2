@@ -1,0 +1,6 @@
+{% set _wg = lookup('vars', inventory_hostname + '_wg') %}
+# {{ ansible_managed }}
+inet {{ _wg.address }} 255.255.255.0 NONE
+up
+
+!/usr/local/bin/wg setconf {{ _wg.interface }} /etc/wireguard/{{ _wg.interface }}.conf

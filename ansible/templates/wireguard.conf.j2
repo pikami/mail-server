@@ -1,0 +1,13 @@
+{% set _wg = lookup('vars', inventory_hostname + '_wg') %}
+# {{ ansible_managed }}
+[Interface]
+PrivateKey = {{ _wg.private_key }}
+ListenPort = {{ _wg.port }}
+
+{% for peer in _wg.peers %}
+[Peer]
+# {{ peer.name }}
+PublicKey = {{ peer.public_key }}
+Endpoint = {{ peer.endpoint }}
+AllowedIPs = {{ peer.allowed_ips }}
+{% endfor %}

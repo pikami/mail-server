@@ -30,6 +30,27 @@ mail_users:
     password: Password123
     virtuals:
       - "alice@pikami.net"
+
+mx1_wg:
+  private_key: <wireguard private key>
+  address: <hosts address inside vpn>
+  port: 21841
+  interface: wg0
+  peers:
+    - name: Gateway
+      public_key: <vpn gateway public key>
+      endpoint: <gateway ip>:21841
+      allowed_ips: 10.2.0.1/32
+mx2_wg:
+  private_key: <wireguard private key>
+  address: <hosts address inside vpn>
+  port: 21841
+  interface: wg0
+  peers:
+    - name: Gateway
+      public_key: <vpn gateway public key>
+      endpoint: <gateway ip>:21841
+      allowed_ips: 10.2.0.1/32
 ```
 
 The hosts are taken from the `inventory.yml` file:
@@ -38,9 +59,9 @@ The hosts are taken from the `inventory.yml` file:
 all:
   hosts:
     mx1:
-      ansible_host: 51.158.215.227
+      ansible_host: <mail server ip>
     mx2:
-      ansible_host: 89.58.5.252
+      ansible_host: <secondary mail server ip>
 ```
 
 ## Environment setup
@@ -77,3 +98,4 @@ Current ansible playbooks:
 - 02-ssl.yml - generates ssl certificates and adds a renew cron job
 - 03-mail.yml - installs and configures dovecot and opensmtpd
 - 04-secondary-mail.yml - installs and configures opensmtpd as a backup mail receiver
+- 05-vpn.yml - configures wireguard vpn
