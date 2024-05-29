@@ -51,6 +51,38 @@ mx2_wg:
       public_key: <vpn gateway public key>
       endpoint: <gateway ip>:21841
       allowed_ips: 10.2.0.1/32
+
+mx1_fw:
+  interfaces:
+    - name: vio0
+      allowed_tcp:
+        - 22 # SSH
+        - 80 # HTTP
+        - 443 # HTTPS
+        - 25 # SMTP Relay
+        - 587 # SMTP Submission
+        - 465 # SMTPS Submission
+        - 143 # IMAP
+        - 993 # IMAPS
+        - 4190 # Sive
+      allowed_udp:
+        - 21841 # Wireguard
+    - name: wg0
+      allowed_tcp:
+        - 22 # SSH
+mx2_fw:
+  interfaces:
+    - name: vio0
+      allowed_tcp:
+        - 22 # SSH
+        - 80 # HTTP
+        - 443 # HTTPS
+        - 25 # SMTP Relay
+      allowed_udp:
+        - 21841 # Wireguard
+    - name: wg0
+      allowed_tcp:
+        - 22 # SSH
 ```
 
 The hosts are taken from the `inventory.yml` file:
@@ -95,6 +127,7 @@ Current ansible playbooks:
   - installs nano, curl and git
   - disables ssh password logins
   - adds ssh public key
+  - configures firewall
 - 02-ssl.yml - generates ssl certificates and adds a renew cron job
 - 03-mail.yml - installs and configures dovecot and opensmtpd
 - 04-secondary-mail.yml - installs and configures opensmtpd as a backup mail receiver

@@ -1,0 +1,30 @@
+{% set _fw = lookup('vars', inventory_hostname + '_fw') %}
+# {{ ansible_managed }}
+# Skip filtering on the loopback interface
+set skip on lo
+
+# set up a default deny policy
+block all
+
+# Block remote X11 connections
+block return in on ! lo0 proto tcp to port 6000:6010
+
+# Port build user does not need network
+block return out log proto {tcp udp} user _pbuild
+
+{% for interface in _fw.interfaces %}
+# Pass rules for the specific ports on the {{ interface.name }} interface
+{% if (interface.allowed_tcp is defined) and interface.allowed_tcp %}
+{% for port in interface.allowed_tcp %}
+pass in on {{ interface.name }} proto tcp from any to any port {{ port }}
+{% endfor %}
+{% endif %}
+{% if (interface.allowed_udp is defined) and interface.allowed_udp %}
+{% for port in interface.allowed_udp %}
+pass in on {{ interface.name }} proto udp from any to any port {{ port }}
+{% endfor %}
+{% endif %}
+pass in on {{ interface.name }} proto icmp
+# Pass out rule to allow outgoing traffic on the {{ interface.name }} interface
+pass out on {{ interface.name }}
+{% endfor %}
