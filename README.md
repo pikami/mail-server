@@ -70,6 +70,7 @@ mx1_fw:
     - name: wg0
       allowed_tcp:
         - 22 # SSH
+        - 9100 # Prometheus node exporter
 mx2_fw:
   interfaces:
     - name: vio0
@@ -83,6 +84,7 @@ mx2_fw:
     - name: wg0
       allowed_tcp:
         - 22 # SSH
+        - 9100 # Prometheus node exporter
 ```
 
 The hosts are taken from the `inventory.yml` file:
@@ -132,3 +134,4 @@ Current ansible playbooks:
 - 03-mail.yml - installs and configures dovecot and opensmtpd
 - 04-secondary-mail.yml - installs and configures opensmtpd as a backup mail receiver
 - 05-vpn.yml - configures wireguard vpn
+- 06-prometheus-exporters.yml - installs prometheus exporters

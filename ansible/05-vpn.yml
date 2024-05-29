@@ -24,6 +24,7 @@
         owner: root
         group: wheel
         mode: "0600"
+      register: wg_config
 
     - name: Create wireguard interface
       template:
@@ -33,4 +34,4 @@
 
     - name: Apply network configuration if changed
       shell: sh /etc/netstart {{ lookup('vars', inventory_hostname + '_wg').interface }}
-      when: iface_config.changed
+      when: wg_config.changed or iface_config.changed
