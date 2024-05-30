@@ -1,0 +1,13 @@
+---
+- name: Configure OpenSMTPD smtpd.conf
+  template:
+    src: templates/smtpd.conf
+    dest: /etc/mail/smtpd.conf
+  notify:
+    - reload smtpd
+
+- name: Enable and start OpenSMTPD service
+  service:
+    name: smtpd
+    enabled: yes
+    state: started

@@ -1,4 +1,3 @@
-{% set _fw = lookup('vars', inventory_hostname + '_fw') %}
 # {{ ansible_managed }}
 # Skip filtering on the loopback interface
 set skip on lo
@@ -12,7 +11,7 @@ block return in on ! lo0 proto tcp to port 6000:6010
 # Port build user does not need network
 block return out log proto {tcp udp} user _pbuild
 
-{% for interface in _fw.interfaces %}
+{% for interface in firewall_interfaces %}
 # Pass rules for the specific ports on the {{ interface.name }} interface
 {% if (interface.allowed_tcp is defined) and interface.allowed_tcp %}
 {% for port in interface.allowed_tcp %}

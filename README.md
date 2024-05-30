@@ -4,88 +4,27 @@ This repository contains the scripts, configuration files, and Ansible playbooks
 
 Feel free to read, copy, use, and suggest improvements.
 
-## Configuration
+## Ansible configurations
 
-Ansible is used for configuration. The playbooks use a `vars.yml` file for settings. This file contains sensitive information, so it is not included in the repository. Below is an example of its structure:
+Available roles:
 
-```yml
----
-ssh_public_key: "ssh-rsa AAAAB3...ak4EsUU="
-mx1_domains:
-  - mx1.pikami.org
-mx2_domains:
-  - mx2.pikami.org
-mx1_mail_domain: mx1.pikami.org
-mx2_mail_domain: mx2.pikami.org
-mail_domains:
-  - pikami.net
-  - pikami.org
-mail_users:
-  - user: bob@pikami.org
-    password: Password123
-    virtuals:
-      - "bob@pikami.net"
-      - "bob.coolman@pikami.net"
-  - user: alice@pikami.org
-    password: Password123
-    virtuals:
-      - "alice@pikami.net"
+- firewall - configures firewall
+- initial-setup
+  - applies available system patches
+  - upgrades all installed packages
+  - installs nano and curl
+  - disables ssh password logins
+  - adds ssh public key
+- mail-primary - installs and configures opensmtpd with dovecot and sive
+- mail-secondary - installs and configures opensmtpd as a backup mail receiver
+- prometheus-exporters - installs prometheus exporters
+- ssl - generates ssl certificates and adds renew cron job
+- vpn - configures wireguard vpn
 
-mx1_wg:
-  private_key: <wireguard private key>
-  address: <hosts address inside vpn>
-  port: 21841
-  interface: wg0
-  peers:
-    - name: Gateway
-      public_key: <vpn gateway public key>
-      endpoint: <gateway ip>:21841
-      allowed_ips: 10.2.0.1/32
-mx2_wg:
-  private_key: <wireguard private key>
-  address: <hosts address inside vpn>
-  port: 21841
-  interface: wg0
-  peers:
-    - name: Gateway
-      public_key: <vpn gateway public key>
-      endpoint: <gateway ip>:21841
-      allowed_ips: 10.2.0.1/32
+Available playbooks:
 
-mx1_fw:
-  interfaces:
-    - name: vio0
-      allowed_tcp:
-        - 22 # SSH
-        - 80 # HTTP
-        - 443 # HTTPS
-        - 25 # SMTP Relay
-        - 587 # SMTP Submission
-        - 465 # SMTPS Submission
-        - 143 # IMAP
-        - 993 # IMAPS
-        - 4190 # Sive
-      allowed_udp:
-        - 21841 # Wireguard
-    - name: wg0
-      allowed_tcp:
-        - 22 # SSH
-        - 9100 # Prometheus node exporter
-mx2_fw:
-  interfaces:
-    - name: vio0
-      allowed_tcp:
-        - 22 # SSH
-        - 80 # HTTP
-        - 443 # HTTPS
-        - 25 # SMTP Relay
-      allowed_udp:
-        - 21841 # Wireguard
-    - name: wg0
-      allowed_tcp:
-        - 22 # SSH
-        - 9100 # Prometheus node exporter
-```
+- primary-mail.yml - sets up a primary mail server, uses `vars-mx1.yml` for configuration
+- secondary-mail.yml - sets up a secondary mail server, uses `vars-mx2.yml` for configuration
 
 The hosts are taken from the `inventory.yml` file:
 
@@ -93,7 +32,7 @@ The hosts are taken from the `inventory.yml` file:
 all:
   hosts:
     mx1:
-      ansible_host: <mail server ip>
+      ansible_host: <primary mail server ip>
     mx2:
       ansible_host: <secondary mail server ip>
 ```
@@ -117,21 +56,6 @@ ansible-galaxy collection install community.general
 Run playbooks
 
 ```sh
-# replace "01-initial_setup.yml" with the playbook you want to run
-ansible-playbook -i inventory.yml 01-initial_setup.yml
+# replace "secondary.yml" with the playbook you want to run
+ansible-playbook -i inventory.yml secondary.yml
 ```
-
-Current ansible playbooks:
-
-- 01-initial_setup.yml
-  - applies available system patches
-  - upgrades all installed packages
-  - installs nano, curl and git
-  - disables ssh password logins
-  - adds ssh public key
-  - configures firewall
-- 02-ssl.yml - generates ssl certificates and adds a renew cron job
-- 03-mail.yml - installs and configures dovecot and opensmtpd
-- 04-secondary-mail.yml - installs and configures opensmtpd as a backup mail receiver
-- 05-vpn.yml - configures wireguard vpn
-- 06-prometheus-exporters.yml - installs prometheus exporters

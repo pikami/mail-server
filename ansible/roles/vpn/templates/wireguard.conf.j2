@@ -1,10 +1,9 @@
-{% set _wg = lookup('vars', inventory_hostname + '_wg') %}
 # {{ ansible_managed }}
 [Interface]
-PrivateKey = {{ _wg.private_key }}
-ListenPort = {{ _wg.port }}
+PrivateKey = {{ wireguard.private_key }}
+ListenPort = {{ wireguard.port }}
 
-{% for peer in _wg.peers %}
+{% for peer in wireguard.peers %}
 [Peer]
 # {{ peer.name }}
 PublicKey = {{ peer.public_key }}

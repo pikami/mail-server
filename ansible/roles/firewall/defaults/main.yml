@@ -1,0 +1,9 @@
+---
+firewall_interfaces:
+  - name: vio0
+    allowed_tcp:
+      - 22    # SSH
+      - 80    # HTTP
+      - 443   # HTTPS
+    allowed_udp:
+      - 21841 # Wireguard

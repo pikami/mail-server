@@ -1,0 +1,10 @@
+---
+- name: reload smtpd
+  service:
+    name: smtpd
+    state: restarted
+
+- name: reload dovecot
+  service:
+    name: dovecot
+    state: reloaded

@@ -1,0 +1,13 @@
+- name: Secondary server configuration
+  hosts:
+    - mx2
+  remote_user: root
+  vars_files:
+    - vars-{{ inventory_hostname }}.yml
+  roles:
+    - initial-setup
+    - firewall
+    - ssl
+    - mail-secondary
+    - vpn
+    - prometheus-exporters

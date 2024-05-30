@@ -1,0 +1,11 @@
+---
+- name: Configure firewall
+  template:
+    src: templates/pf.conf.j2
+    dest: /etc/pf.conf
+    validate: pfctl -n -f %s
+  register: pf
+
+- name: Load config to pf if needed
+  command: pfctl -f /etc/pf.conf
+  when: pf.changed

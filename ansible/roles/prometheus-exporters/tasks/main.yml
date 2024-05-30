@@ -1,0 +1,12 @@
+---
+- name: Install node-exporter
+  community.general.openbsd_pkg:
+    name:
+      - node_exporter
+    state: present
+
+- name: Enable and start node_exporter
+  service:
+    name: node_exporter
+    enabled: yes
+    state: started

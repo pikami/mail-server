@@ -1,0 +1,6 @@
+---
+primary_mail_server: mx1.example.com
+server_domain: mx1.example.com
+mail_receive_domains:
+  - example.net
+  - example.com

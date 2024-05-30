@@ -1,0 +1,30 @@
+---
+- name: Install wireguard
+  community.general.openbsd_pkg:
+    name:
+      - wireguard-tools
+    state: present
+
+- name: Ensures /etc/wireguard dir exists
+  file:
+    path: /etc/wireguard
+    state: directory
+
+- name: Create wireguard config
+  template:
+    src: templates/wireguard.conf.j2
+    dest: /etc/wireguard/{{ wireguard.interface }}.conf
+    owner: root
+    group: wheel
+    mode: "0600"
+  register: wg_config
+
+- name: Create wireguard interface
+  template:
+    src: "templates/wireguard.if.j2"
+    dest: "/etc/hostname.{{ wireguard.interface }}"
+  register: iface_config
+
+- name: Apply network configuration if changed
+  shell: sh /etc/netstart {{ wireguard.interface }}
+  when: wg_config.changed or iface_config.changed

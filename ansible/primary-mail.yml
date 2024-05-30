@@ -1,0 +1,13 @@
+- name: Primary server configuration
+  hosts:
+    - mx1
+  remote_user: root
+  vars_files:
+    - vars-{{ inventory_hostname }}.yml
+  roles:
+    - initial-setup
+    - firewall
+    - ssl
+    - mail-primary
+    - vpn
+    - prometheus-exporters

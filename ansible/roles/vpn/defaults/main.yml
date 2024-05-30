@@ -1,0 +1,11 @@
+---
+wireguard:
+  private_key: <wireguard private key>
+  address: <hosts address inside vpn>
+  port: 21841
+  interface: wg0
+  peers:
+    - name: Gateway
+      public_key: <vpn gateway public key>
+      endpoint: <gateway ip>:21841
+      allowed_ips: 10.2.0.1/32

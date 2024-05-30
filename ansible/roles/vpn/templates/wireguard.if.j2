@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+inet {{ wireguard.address }} 255.255.255.0 NONE
+up
+
+!/usr/local/bin/wg setconf {{ wireguard.interface }} /etc/wireguard/{{ wireguard.interface }}.conf

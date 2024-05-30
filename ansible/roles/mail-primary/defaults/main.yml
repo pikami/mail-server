@@ -1,0 +1,15 @@
+---
+server_domain: mx1.example.com
+mail_receive_domains:
+  - example.net
+  - example.com
+mail_users:
+  - user: bob@example.com
+    password: Password123
+    virtuals:
+      - "bob@example.net"
+      - "bob.coolman@example.net"
+  - user: alice@example.com
+    password: Password123
+    virtuals:
+      - "alice@example.net"
